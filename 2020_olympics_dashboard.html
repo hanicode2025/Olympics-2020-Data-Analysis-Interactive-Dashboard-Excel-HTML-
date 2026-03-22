@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tokyo 2020 Olympics — Medal Analysis</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold:   #F5C842;
+    --silver: #C0C8D8;
+    --bronze: #CD7F32;
+    --bg:     #0A0E1A;
+    --surface:#111827;
+    --card:   #161D2E;
+    --border: rgba(255,255,255,0.07);
+    --text:   #E8EDF5;
+    --muted:  #6B7A99;
+    --accent: #3B6FF0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+  }
+
+  header {
+    background: linear-gradient(135deg, #0D1526 0%, #111827 60%, #0A0E1A 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 48px 64px 36px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: 'TOKYO 2020';
+    position: absolute;
+    right: 48px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 96px;
+    line-height: 1;
+    color: rgba(255,255,255,0.03);
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .rings { display: flex; gap: 8px; margin-bottom: 20px; }
+  .ring {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 3px solid;
+    opacity: 0.85;
+  }
+  .ring:nth-child(1){border-color:#3B82F6;}
+  .ring:nth-child(2){border-color:#F5C842;}
+  .ring:nth-child(3){border-color:#22C55E;}
+  .ring:nth-child(4){border-color:#EF4444;}
+  .ring:nth-child(5){border-color:#FAFAFA;}
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px;
+    letter-spacing: 3px;
+    line-height: 1;
+    margin-bottom: 10px;
+    background: linear-gradient(90deg, #fff 0%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    padding: 32px 64px 0;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--stripe-color, var(--accent));
+    border-radius: 3px 0 0 3px;
+  }
+  .stat-card:nth-child(1){ --stripe-color: var(--gold); }
+  .stat-card:nth-child(2){ --stripe-color: var(--silver); }
+  .stat-card:nth-child(3){ --stripe-color: var(--bronze); }
+  .stat-card:nth-child(4){ --stripe-color: var(--accent); }
+  .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--muted); }
+  .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 40px; line-height: 1; color: var(--text); }
+  .stat-sub { font-size: 12px; color: var(--muted); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding: 28px 64px;
+  }
+  .grid-full { grid-column: 1 / -1; }
+
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .chart-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .chart-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 1.5px;
+    color: var(--text);
+    line-height: 1.1;
+  }
+  .chart-badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.06);
+    color: var(--muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .chart-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-top: -8px;
+  }
+  canvas { width: 100% !important; }
+
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+  footer {
+    text-align: center;
+    padding: 24px 64px 40px;
+    color: var(--muted);
+    font-size: 12px;
+    border-top: 1px solid var(--border);
+    margin-top: 8px;
+  }
+  footer span { color: var(--gold); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="rings">
+    <div class="ring"></div><div class="ring"></div>
+    <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+  </div>
+  <h1>Tokyo 2020 Olympics</h1>
+  <p class="subtitle">Medal Table Analysis &nbsp;·&nbsp; 93 Nations &nbsp;·&nbsp; Data Dashboard</p>
+</header>
+
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-label">Total Gold Medals</div>
+    <div class="stat-value">340</div>
+    <div class="stat-sub">Across all nations</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Total Silver Medals</div>
+    <div class="stat-value">338</div>
+    <div class="stat-sub">Across all nations</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Total Bronze Medals</div>
+    <div class="stat-value">402</div>
+    <div class="stat-sub">Across all nations</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Participating Nations</div>
+    <div class="stat-value">93</div>
+    <div class="stat-sub">Won at least 1 medal</div>
+  </div>
+</div>
+
+<div class="grid">
+
+  <div class="chart-card grid-full">
+    <div class="chart-header">
+      <div>
+        <div class="chart-title">Top 10 Countries — Overall Medal Count</div>
+        <div class="chart-desc">Combined gold, silver, and bronze performance. USA leads with 113 total medals, followed by China (89) and ROC (71).</div>
+      </div>
+      <div class="chart-badge">Overall Rankings</div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div>Gold</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--silver)"></div>Silver</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--bronze)"></div>Bronze</div>
+    </div>
+    <canvas id="overallChart" height="90"></canvas>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-header">
+      <div>
+        <div class="chart-title">Top 10 Gold Medal Countries</div>
+        <div class="chart-desc">USA leads with 39 gold, followed by China (38) and Japan (27).</div>
+      </div>
+      <div class="chart-badge" style="color:var(--gold)">🥇 Gold</div>
+    </div>
+    <canvas id="goldChart" height="200"></canvas>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-header">
+      <div>
+        <div class="chart-title">Top 10 Silver Medal Countries</div>
+        <div class="chart-desc">USA also tops silver with 41, then China (32) and ROC (28).</div>
+      </div>
+      <div class="chart-badge" style="color:var(--silver)">🥈 Silver</div>
+    </div>
+    <canvas id="silverChart" height="200"></canvas>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-header">
+      <div>
+        <div class="chart-title">Top 10 Bronze Medal Countries</div>
+        <div class="chart-desc">USA leads with 33. Ukraine (rank #44 overall) earns a spot here with 12 bronze.</div>
+      </div>
+      <div class="chart-badge" style="color:var(--bronze)">🥉 Bronze</div>
+    </div>
+    <canvas id="bronzeChart" height="200"></canvas>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-header">
+      <div>
+        <div class="chart-title">Gold Medal Conversion Rate (%)</div>
+        <div class="chart-desc">% of total medals that are gold. Bahamas &amp; Kosovo converted 100% — every medal they won was gold.</div>
+      </div>
+      <div class="chart-badge">Efficiency</div>
+    </div>
+    <canvas id="divChart" height="200"></canvas>
+  </div>
+
+</div>
+
+<footer>
+  Tokyo 2020 Olympics &nbsp;·&nbsp; Data Analysis &nbsp;·&nbsp; <span>93 Nations Competed</span> &nbsp;·&nbsp; Summer Games · July–August 2021
+</footer>
+
+<script>
+const GOLD   = '#F5C842';
+const SILVER = '#C0C8D8';
+const BRONZE = '#CD7F32';
+
+Chart.defaults.color = '#6B7A99';
+Chart.defaults.font.family = 'DM Sans';
+
+const gridLine = { color: 'rgba(255,255,255,0.05)', drawBorder: false };
+
+// Overall stacked bar
+new Chart(document.getElementById('overallChart'), {
+  type: 'bar',
+  data: {
+    labels: ['United States','China','ROC','Great Britain','Japan','Australia','Italy','Germany','Netherlands','France'],
+    datasets: [
+      { label:'Gold',   data:[39,38,20,22,27,17,10,10,10,10], backgroundColor:GOLD,   borderRadius:3, borderSkipped:false },
+      { label:'Silver', data:[41,32,28,20,14, 7,10,11,12,12], backgroundColor:SILVER, borderRadius:3, borderSkipped:false },
+      { label:'Bronze', data:[33,19,23,22,17,22,20,16,14,11], backgroundColor:BRONZE, borderRadius:3, borderSkipped:false }
+    ]
+  },
+  options: {
+    responsive:true,
+    plugins:{ legend:{ display:false } },
+    scales:{
+      x:{ stacked:true, grid:gridLine, ticks:{ font:{ size:12 } } },
+      y:{ stacked:true, grid:gridLine }
+    }
+  }
+});
+
+// Gold horizontal bar
+new Chart(document.getElementById('goldChart'), {
+  type:'bar',
+  data:{
+    labels:['USA','China','Japan','G. Britain','ROC','Australia','Netherlands','France','Germany','Italy'],
+    datasets:[{
+      data:[39,38,27,22,20,17,10,10,10,10],
+      backgroundColor:['rgba(245,200,66,1)','rgba(245,200,66,0.88)','rgba(245,200,66,0.76)',
+        'rgba(245,200,66,0.65)','rgba(245,200,66,0.58)','rgba(245,200,66,0.52)',
+        'rgba(245,200,66,0.47)','rgba(245,200,66,0.43)','rgba(245,200,66,0.39)','rgba(245,200,66,0.35)'],
+      borderRadius:5, borderSkipped:false
+    }]
+  },
+  options:{
+    indexAxis:'y', responsive:true,
+    plugins:{ legend:{ display:false } },
+    scales:{ x:{ grid:gridLine }, y:{ grid:{ display:false } } }
+  }
+});
+
+// Silver
+new Chart(document.getElementById('silverChart'), {
+  type:'bar',
+  data:{
+    labels:['USA','China','ROC','G. Britain','Japan','Netherlands','France','Germany','Italy','Spain'],
+    datasets:[{
+      data:[41,32,28,20,14,12,12,11,10,8],
+      backgroundColor:['rgba(192,200,216,1)','rgba(192,200,216,0.88)','rgba(192,200,216,0.76)',
+        'rgba(192,200,216,0.65)','rgba(192,200,216,0.58)','rgba(192,200,216,0.52)',
+        'rgba(192,200,216,0.47)','rgba(192,200,216,0.43)','rgba(192,200,216,0.39)','rgba(192,200,216,0.35)'],
+      borderRadius:5, borderSkipped:false
+    }]
+  },
+  options:{
+    indexAxis:'y', responsive:true,
+    plugins:{ legend:{ display:false } },
+    scales:{ x:{ grid:gridLine }, y:{ grid:{ display:false } } }
+  }
+});
+
+// Bronze
+new Chart(document.getElementById('bronzeChart'), {
+  type:'bar',
+  data:{
+    labels:['USA','ROC','G. Britain','Australia','Italy','China','Japan','Germany','Netherlands','Ukraine'],
+    datasets:[{
+      data:[33,23,22,22,20,19,17,16,14,12],
+      backgroundColor:['rgba(205,127,50,1)','rgba(205,127,50,0.88)','rgba(205,127,50,0.76)',
+        'rgba(205,127,50,0.65)','rgba(205,127,50,0.58)','rgba(205,127,50,0.52)',
+        'rgba(205,127,50,0.47)','rgba(205,127,50,0.43)','rgba(205,127,50,0.39)','rgba(205,127,50,0.35)'],
+      borderRadius:5, borderSkipped:false
+    }]
+  },
+  options:{
+    indexAxis:'y', responsive:true,
+    plugins:{ legend:{ display:false } },
+    scales:{ x:{ grid:gridLine }, y:{ grid:{ display:false } } }
+  }
+});
+
+// Division Rate
+new Chart(document.getElementById('divChart'), {
+  type:'bar',
+  data:{
+    labels:['Bahamas','Kosovo','Bermuda','Morocco','Puerto Rico','Qatar','Ecuador','Uzbekistan','Slovenia','Norway'],
+    datasets:[{
+      data:[100,100,100,100,100,66.7,66.7,60,60,50],
+      backgroundColor(ctx){
+        const v = ctx.raw;
+        if(v===100) return 'rgba(245,200,66,0.9)';
+        if(v>=66)   return 'rgba(59,111,240,0.7)';
+        return 'rgba(59,111,240,0.45)';
+      },
+      borderRadius:5, borderSkipped:false
+    }]
+  },
+  options:{
+    indexAxis:'y', responsive:true,
+    plugins:{
+      legend:{ display:false },
+      tooltip:{ callbacks:{ label:ctx=>` ${ctx.raw}%` } }
+    },
+    scales:{
+      x:{ grid:gridLine, max:110, ticks:{ callback:v=>v+'%' } },
+      y:{ grid:{ display:false } }
+    }
+  }
+});
+</script>
+</body>
+</html>
