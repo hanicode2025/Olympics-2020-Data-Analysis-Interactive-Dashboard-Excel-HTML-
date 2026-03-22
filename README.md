@@ -24,9 +24,6 @@ This project presents an end-to-end data analysis of the Tokyo 2020 Olympics dat
 - Smaller countries demonstrate higher efficiency in medal conversion  
 - Significant performance gap exists between top-tier and mid-tier nations  
 
-## 🖼️ Dashboard Preview
-![Dashboard](add-your-screenshot-here.png)
-
 ## 🚀 How to Use
 1. Open the HTML dashboard for interactive exploration  
 2. Review the PDF for complete visualizations  
@@ -37,16 +34,9 @@ The dataset includes:
 - Country-wise medal counts (Gold, Silver, Bronze, Total)  
 - Derived metrics such as medal efficiency and distribution  
 - Data extracted using Power Query and processed in Excel  
-
-## 🔗 Resources & Links
-- 📊 Dashboard (HTML): `dashboard/your-dashboard-file.html`  
-- 📄 Full Report (PDF): `reports/your-report-file.pdf`  
-- 📁 Cleaned Dataset: `cleaned_data/your-dataset-file.xlsx`  
-- 🌐 Data Source: https://en.wikipedia.org/wiki/2020_Summer_Olympics_medal_table  
+  
 
 ## 🔗 Connect with Me
-- 💼 LinkedIn: https://www.linkedin.com/in/your-username  
-- 💻 GitHub: https://github.com/your-username  
-- 📧 Email: your-email@example.com  
-- 🌐 Portfolio (if any): https://your-portfolio.com  
+- 💼 LinkedIn:[ https://www.linkedin.com/in/username  ](https://www.linkedin.com/in/haneeshtadepalli/)
+- 📧 Email: haneeshtadepalli@gmail.com 
 ---
